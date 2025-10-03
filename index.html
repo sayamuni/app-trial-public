@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>評価ページ</title>
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      background: #e8f5e9;
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+    .card {
+      background: #c8e6c9;       /* 緑の四角 */
+      border-radius: 20px;
+      padding: 30px;             /* 内側の余白を広めに */
+      width: 700px;              /* 左右の要素を包む横幅 */
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+    }
+    /* 左側：画像 */
+    .main-image-container {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #main-preview {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid #aaa;
+      margin-bottom: 10px;
+    }
+    .image-input {
+      font-size: 14px;
+    }
+
+    /* 右側：評価行 */
+    .ratings {
+      flex: 1;
+    }
+    .rating-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 6px;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+    }
+    .stars {
+      display: flex;
+      gap: 5px;
+      cursor: pointer;
+    }
+    .star {
+      font-size: 24px;
+      color: #ccc;
+      transition: color 0.2s;
+    }
+    .star.active {
+      color: #388e3c;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>評価ページ</h2>
+
+    <div class="container">
+      <!-- 左側：大きな画像 -->
+      <div class="main-image-container">
+        <img src="" alt="選択画像" id="main-preview">
+        <input type="file" accept="image/*" class="image-input">
+      </div>
+
+      <!-- 右側：評価行 -->
+      <div class="ratings">
+        <div class="rating-row">
+          <input type="text" list="categories" class="category-input" placeholder="カテゴリ名を入力または選択">
+          <div class="stars"></div>
+        </div>
+        <div class="rating-row">
+          <input type="text" list="categories" class="category-input" placeholder="カテゴリ名を入力または選択">
+          <div class="stars"></div>
+        </div>
+        <div class="rating-row">
+          <input type="text" list="categories" class="category-input" placeholder="カテゴリ名を入力または選択">
+          <div class="stars"></div>
+        </div>
+      </div>
+    </div>
+
+    <datalist id="categories"></datalist>
+  </div>
+
+  <script>
+    const allCategories = new Set();
+
+    // スター初期化
+    function initStars(starsContainer) {
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement("span");
+        star.classList.add("star");
+        star.innerHTML = "★";
+        star.dataset.value = i;
+
+        star.addEventListener("click", () => {
+          const allStars = starsContainer.querySelectorAll(".star");
+          allStars.forEach(s => s.classList.remove("active"));
+          for (let j = 0; j < i; j++) {
+            allStars[j].classList.add("active");
+          }
+
+          const input = starsContainer.parentNode.querySelector(".category-input");
+          const categoryName = input.value.trim() || "(未入力)";
+
+          if (categoryName) {
+            allCategories.add(categoryName);
+            updateDatalist();
+          }
+
+          // 左側の画像情報も取得
+          const img = document.getElementById("main-preview").src;
+          console.log(`カテゴリ: ${categoryName}, 評価: ${i}点, 画像: ${img}`);
+        });
+
+        starsContainer.appendChild(star);
+      }
+    }
+
+    function updateDatalist() {
+      const datalist = document.getElementById("categories");
+      datalist.innerHTML = "";
+      allCategories.forEach(cat => {
+        const option = document.createElement("option");
+        option.value = cat;
+        datalist.appendChild(option);
+      });
+    }
+
+    document.querySelectorAll(".stars").forEach(initStars);
+
+    // カテゴリ入力時に候補追加
+    document.querySelectorAll(".category-input").forEach(input => {
+      input.addEventListener("input", (e) => {
+        const value = e.target.value.trim();
+        if (value && !allCategories.has(value)) {
+          allCategories.add(value);
+          updateDatalist();
+        }
+      });
+    });
+
+    // 左側画像選択
+    document.querySelector(".image-input").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const mainPreview = document.getElementById("main-preview");
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        mainPreview.src = event.target.result;
+      }
+      reader.readAsDataURL(file);
+    });
+  </script>
+</body>
+</html>
